@@ -1,0 +1,2 @@
+C:\Users\jrior\anaconda3\Scripts\jupyter nbconvert --to notebook --execute C:\Users\jrior\Documents\NSS\student\DS5\projects\dynasty_fantasy_football_ktc\notebooks\scrape\ktc_02_daily_dynasty_ranks_scrape.ipynb
+pause
