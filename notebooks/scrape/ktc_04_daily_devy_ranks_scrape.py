@@ -84,7 +84,7 @@ current_devy_ranks = pd.DataFrame(rankings_dict)
 # In[4]:
 
 
-current_devy_ranks['date'] = today
+current_devy_ranks['date'] = today + timedelta(days = 1)
 
 
 # # Create historical values df, append new dynasty ranks and historical values to respective CSVs
