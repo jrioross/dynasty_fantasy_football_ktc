@@ -1,0 +1,35 @@
+---
+title: "rds_conversions"
+output: html_document
+---
+
+# Imports
+
+```{r}
+library(tidyverse)
+```
+
+# Read in dynasty values
+
+```{r}
+dynasty_historical <- read_csv('../../data/ktc_historical_dynasty_values.csv')
+dynasty_historical %>%
+  arrange(desc(date))
+```
+
+# Read in devy values
+
+```{r}
+devy_historical <- read_csv('../../data/ktc_historical_devy_values.csv')
+devy_historical %>%
+  arrange(date, desc(value))
+```
+
+# Read in dynasty attributes
+
+```{r}
+dynasty_attributes <- read_csv('../../data/ktc_player_attributes.csv')
+dynasty_attributes %>% 
+  pivot_wider(id_cols = name, names_from = attribute, values_from = value)
+```
+

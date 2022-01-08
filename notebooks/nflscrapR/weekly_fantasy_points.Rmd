@@ -1,0 +1,110 @@
+---
+title: "weekly_fantasy_points"
+output: html_document
+---
+
+```{r}
+library(nflfastR)
+```
+
+# nflfastR sample code to create season ppr ppg
+
+```{r}
+nflfastR::load_pbp(2021) %>%
+  dplyr::filter(week <= 16) %>%
+  nflfastR::calculate_player_stats() %>%
+  dplyr::mutate(
+    ppg = fantasy_points_ppr / games
+  ) %>%
+  filter(games > 5) %>%
+  # only keep the WRs
+  inner_join(
+    nflfastR::fast_scraper_roster(2021) %>% filter(position == "WR") %>% select(gsis_id),
+    by = c("player_id" = "gsis_id")
+  ) %>%
+  dplyr::arrange(-ppg) %>%
+  dplyr::select(player_name, recent_team, games, fantasy_points_ppr, ppg) %>%
+  utils::head(10)
+  #knitr::kable(digits = 1)
+```
+
+# Construct weekly halfppr for 2021
+
+```{r}
+weekly_home_2021 <- nflfastR::load_pbp(2021) %>%
+  dplyr::filter(week <= 18) %>%
+  nflfastR::calculate_player_stats(weekly = TRUE) %>%
+  inner_join(
+    nflfastR::fast_scraper_roster(2021) %>% filter(position %in% c("QB", "WR", "RB", "TE")) %>% select(gsis_id, season, position, full_name, first_name, last_name),
+    by = c("player_id" = "gsis_id")) %>% 
+  inner_join(fast_scraper_schedules(2021), by = c("week" = "week", "recent_team" = "home_team")) %>% 
+  dplyr::mutate(fantasy_points = fantasy_points + 0.5*receptions) %>%
+  dplyr::select(full_name, first_name, last_name, recent_team, season, week, gameday, fantasy_points, fantasy_points, fantasy_points_ppr)
+
+weekly_away_2021 <- nflfastR::load_pbp(2021) %>%
+  dplyr::filter(week <= 18) %>%
+  nflfastR::calculate_player_stats(weekly = TRUE) %>%
+  inner_join(
+    nflfastR::fast_scraper_roster(2021) %>% filter(position %in% c("QB", "WR", "RB", "TE")) %>% select(gsis_id, season, position, full_name, first_name, last_name),
+    by = c("player_id" = "gsis_id")) %>% 
+  inner_join(fast_scraper_schedules(2021), by = c("week" = "week", "recent_team" = "away_team")) %>% 
+  dplyr::mutate(fantasy_points = fantasy_points + 0.5*receptions) %>%
+  dplyr::select(full_name, first_name, last_name, recent_team, season, week, gameday, fantasy_points, fantasy_points, fantasy_points_ppr)
+
+weekly_2021 <- weekly_home_2021 %>%
+  bind_rows(weekly_away_2021) %>%
+  arrange(full_name, gameday, week)
+
+weekly_2021
+```
+# Construct weekly halfppr for 2020
+
+```{r}
+weekly_home_2020 <- nflfastR::load_pbp(2020) %>%
+  dplyr::filter(week <= 17) %>%
+  nflfastR::calculate_player_stats(weekly = TRUE) %>%
+  inner_join(
+    nflfastR::fast_scraper_roster(2020) %>% filter(position %in% c("QB", "WR", "RB", "TE")) %>% select(gsis_id, season, position, full_name, first_name, last_name),
+    by = c("player_id" = "gsis_id")) %>% 
+  inner_join(fast_scraper_schedules(2020), by = c("week" = "week", "recent_team" = "home_team")) %>% 
+  dplyr::mutate(fantasy_points = fantasy_points + 0.5*receptions) %>%
+  dplyr::select(full_name, first_name, last_name, recent_team, season, week, gameday, fantasy_points, fantasy_points, fantasy_points_ppr)
+
+weekly_away_2020 <- nflfastR::load_pbp(2020) %>%
+  dplyr::filter(week <= 17) %>%
+  nflfastR::calculate_player_stats(weekly = TRUE) %>%
+  inner_join(
+    nflfastR::fast_scraper_roster(2020) %>% filter(position %in% c("QB", "WR", "RB", "TE")) %>% select(gsis_id, season, position, full_name, first_name, last_name),
+    by = c("player_id" = "gsis_id")) %>% 
+  inner_join(fast_scraper_schedules(2020), by = c("week" = "week", "recent_team" = "away_team")) %>% 
+  dplyr::mutate(fantasy_points = fantasy_points + 0.5*receptions) %>%
+  dplyr::select(full_name, first_name, last_name, recent_team, season, week, gameday, fantasy_points, fantasy_points, fantasy_points_ppr)
+
+weekly_2020 <- weekly_home_2020 %>%
+  bind_rows(weekly_away_2020) %>%
+  arrange(full_name, gameday, week)
+
+weekly_2020
+```
+
+# Construct weekly halfppr for 2020-2021
+
+```{r}
+weekly <- weekly_2020 %>%
+  bind_rows(weekly_2021) %>%
+  mutate(gameday = as.Date(gameday)) %>%
+  arrange(full_name, gameday, week)
+
+weekly
+```
+
+# Write rds and csv
+
+```{r}
+weekly %>% 
+  write_csv('../../data/weekly_fantasy.csv')
+
+weekly %>% 
+  write_rds('../../data/weekly_fantasy.RDS')
+```
+
