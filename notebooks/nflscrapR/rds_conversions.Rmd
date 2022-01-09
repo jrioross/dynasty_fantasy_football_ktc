@@ -7,6 +7,7 @@ output: html_document
 
 ```{r}
 library(tidyverse)
+library(lubridate)
 ```
 
 # Read in dynasty values
@@ -28,8 +29,37 @@ devy_historical %>%
 # Read in dynasty attributes
 
 ```{r}
-dynasty_attributes <- read_csv('../../data/ktc_player_attributes.csv')
-dynasty_attributes %>% 
-  pivot_wider(id_cols = name, names_from = attribute, values_from = value)
+dynasty_attributes_long <- read_csv('../../data/ktc_player_attributes.csv')
+```
+
+# Widen and prepare dynasty_attributes columns
+
+```{r}
+dynasty_attributes_prep <- dynasty_attributes_long %>% 
+  pivot_wider(id_cols = name, names_from = attribute, values_from = value) %>%
+  mutate(Age = as.integer(str_extract(Age, '\\d+')),
+         Born = mdy(Born),
+         Height = as.integer(str_extract(Height, '\\d+(?=\')'))*12 + as.integer(str_extract(Height, '\\d+(?=")')),
+         Weight = as.integer(str_extract(Weight, '\\d+(?=\\slbs)')),
+         `Draft Class` = as.double(`Draft Class`),
+         Experience = coalesce(str_extract(`Yrs. Exp.`, "\\d+(?=\\syrs)"), "1"),
+         `Draft Round` = as.double(str_extract(Drafted, "\\d(?=,)"))
+         )
+
+dynasty_attributes_prep
+```
+
+# Bring in pick numbers and positions
+
+```{r}
+draft_picks <- read_csv("https://raw.githubusercontent.com/leesharpe/nfldata/master/data/draft_picks.csv")
+# we do a left join here because the names won't always match but don't want to lose any nflscrapR rows
+dynasty_attributes <- dynasty_attributes_prep %>%
+  left_join(draft_picks %>% 
+              filter(position %in% c("QB", "RB", "WR", "TE")) %>% 
+              select(pfr_name, season, round, pick, position), 
+            by=c("name"="pfr_name", "Draft Class" = "season", "Draft Round" = "round"))
+
+dynasty_attributes
 ```
 
