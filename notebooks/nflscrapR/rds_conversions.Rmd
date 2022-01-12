@@ -49,7 +49,7 @@ dynasty_attributes_prep <- dynasty_attributes_long %>%
 dynasty_attributes_prep
 ```
 
-# Bring in pick numbers and positions
+# Bring in pick numbers and positions to create dynasty_attributes
 
 ```{r}
 draft_picks <- read_csv("https://raw.githubusercontent.com/leesharpe/nfldata/master/data/draft_picks.csv")
@@ -58,8 +58,106 @@ dynasty_attributes <- dynasty_attributes_prep %>%
   left_join(draft_picks %>% 
               filter(position %in% c("QB", "RB", "WR", "TE")) %>% 
               select(pfr_name, season, round, pick, position), 
-            by=c("name"="pfr_name", "Draft Class" = "season", "Draft Round" = "round"))
+            by=c("name"="pfr_name", "Draft Class" = "season", "Draft Round" = "round")) %>% 
+  select(-`Yrs. Exp.`) %>% 
+  rename(Name = name, `Draft Overall Pick` = pick, Position = position)
 
 dynasty_attributes
+```
+
+# Read in ktc_historical_dynasty_values as dynasty_values
+
+```{r}
+dynasty_values_orig <- read_csv('../../data/ktc_historical_dynasty_values.csv')
+```
+
+# Repair duplicate dynasty_values dates
+
+```{r}
+# change duplicate entries of 2022-01-05 to 2022-01-06 
+
+dynasty_values <- dynasty_values_orig %>%
+  group_by(name, date) %>%
+  mutate(Count = row_number()) %>%
+  ungroup() %>%
+  mutate(date = as.Date(ifelse(Count > 1, date+days(1), date), origin = "1970-01-01")) %>%
+  select(-Count) %>%
+  arrange(date, desc(value))
+
+dynasty_values
+```
+
+# Explote devy_values
+
+```{r}
+devy_values_orig <- read_csv('../../data/ktc_historical_devy_values.csv')
+```
+
+```{r}
+devy_values <- devy_values_orig %>%
+  group_by(name, date) %>%
+  mutate(Count = row_number()) %>%
+  ungroup() %>%
+  mutate(date = as.Date(ifelse(Count == 1 & date == "2022-01-11", date-days(1), date), origin = "1970-01-01")) %>%
+  select(-Count) %>%
+  arrange(date, desc(value))
+
+devy_values
+```
+
+# Create master table for shiny app
+
+```{r}
+dynasty_full <- dynasty_values %>%
+  left_join(dynasty_attributes, by = c('name' = 'Name')) %>% 
+  mutate(`Draft Overall Pick` = case_when(name == "D.J. Chark"~61, 
+                                          name == "DK Metcalf"~64,
+                                          name == "Ronald Jones"~38,
+                                          name == "Chris Herndon"~107,
+                                          TRUE~`Draft Overall Pick`),
+         Position = case_when(name == "D.J. Chark"~"WR",
+                              name == "DK Metcalf"~"WR",
+                              name == "Robbie Anderson"~"WR",
+                              name == "Ronald Jones"~"RB",
+                              name == "Chris Herndon"~"TE",
+                              TRUE~Position),
+         College = ifelse(name == "Melvin Gordon", "Wisconsin", College)
+         )
+
+dynasty_full
+```
+
+
+# Rewrite to CSV and RDS
+
+```{r}
+# dynasty attributes
+dynasty_attributes %>% 
+  write_csv('../../data/dynasty_attributes.csv')
+
+dynasty_attributes %>% 
+  write_rds('../../data/dynasty_attributes.RDS')
+
+# dynasty values
+dynasty_values %>% 
+  write_csv('../../data/ktc_historical_dynasty_values.csv')
+
+dynasty_values %>% 
+  write_rds('../../data/ktc_historical_dynasty_values.RDS')
+
+# devy values
+devy_values %>% 
+  write_csv('../../data/ktc_historical_devy_values.csv')
+
+devy_values %>% 
+  write_rds('../../data/ktc_historical_devy_values.RDS')
+
+# dynasty values with attributes (aka dynasty_full)
+dynasty_full %>%
+  write_csv('../../data/dynasty_full.csv')
+
+dynasty_full %>%
+  write_rds('../../data/dynasty_full.RDS')
+
 ```
 

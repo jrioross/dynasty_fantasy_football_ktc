@@ -3,4 +3,75 @@ title: "graphs"
 output: html_document
 ---
 
+# Imports
+
+```{r}
+library(tidyverse)
+library(plotly)
+```
+
+# Read in dynasty data
+
+```{r}
+dynasty <- readRDS('../../data/dynasty_full.RDS')
+dynasty
+```
+# max_value vs weight by position group
+
+```{r}
+dynasty %>% 
+  group_by(name) %>% 
+  drop_na(Position) %>%
+  summarize(max_value = max(value), weight = max(Weight), position = first(Position)) %>% 
+  ggplot(aes(x = weight, y = max_value, color = position)) +
+    geom_point() +
+    geom_smooth(se = FALSE) +
+    facet_wrap(~position)
+```
+
+# max_value vs height by position group
+
+```{r}
+dynasty %>% 
+  group_by(name) %>% 
+  drop_na(Position) %>%
+  summarize(max_value = max(value), height = max(Height), position = first(Position)) %>% 
+  ggplot(aes(x = height, y = max_value, color = position)) +
+    geom_point() +
+    geom_smooth(se = FALSE) +
+    facet_wrap(~position)
+```
+
+# max_value vs age by position group
+
+```{r}
+dynasty %>% 
+  group_by(name) %>% 
+  drop_na(Position) %>%
+  summarize(max_value = max(value), age = max(Age), position = first(Position)) %>% 
+  ggplot(aes(x = age, y = max_value, color = position)) +
+    geom_point() +
+    geom_smooth(se = FALSE) +
+    facet_wrap(~position)
+```
+
+# max_value vs Draft Pick Overall by position group
+
+```{r}
+max_val_draft <- dynasty %>% 
+  group_by(name) %>% 
+  drop_na(Position) %>%
+  summarize(max_value = max(value), `Draft Position` = max(`Draft Overall Pick`), position = first(Position)) %>% 
+  ggplot(aes(x = `Draft Position`, 
+             y = max_value, 
+             color = position,
+             text = sprintf("Name: %s<br>Draft Position: %s<br>Max Value: %s<br>Position: %s",
+                                name, `Draft Position`, max_value, position
+                                ))) +
+    geom_point() +
+    geom_smooth(se = FALSE) +
+    facet_wrap(~position)
+
+ggplotly(max_val_draft, tooltip = 'text')
+```
 
