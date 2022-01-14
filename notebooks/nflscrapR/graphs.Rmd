@@ -16,6 +16,14 @@ library(plotly)
 dynasty <- readRDS('../../data/dynasty_full.RDS')
 dynasty
 ```
+# Read in fantasy data
+
+```{r}
+fantasy <- readRDS('../../data/weekly_fantasy.RDS')
+fantasy
+```
+
+
 # max_value vs weight by position group
 
 ```{r}
@@ -65,13 +73,123 @@ max_val_draft <- dynasty %>%
   ggplot(aes(x = `Draft Position`, 
              y = max_value, 
              color = position,
-             text = sprintf("Name: %s<br>Draft Position: %s<br>Max Value: %s<br>Position: %s",
+             )) +
+    geom_point(aes(text = sprintf("Name: %s<br>Draft Position: %s<br>Max Value: %s<br>Position: %s",
                                 name, `Draft Position`, max_value, position
                                 ))) +
-    geom_point() +
     geom_smooth(se = FALSE) +
     facet_wrap(~position)
 
 ggplotly(max_val_draft, tooltip = 'text')
 ```
+
+# Position vs Most Recent Value
+
+```{r}
+vals_by_position <- dynasty %>% 
+  drop_na(Position) %>% 
+  filter(date == max(date)) %>% 
+  ggplot(aes(x = Position, y = value, fill = Position)) +
+    geom_boxplot()
+
+ggplotly(vals_by_position)
+```
+
+# Player comparisons over time, KTC
+
+```{r}
+Barkley_Taylor <- dynasty %>% 
+  filter(name %in% c("Saquon Barkley", "Jonathan Taylor")) %>% 
+  ggplot(aes(x = date, y = value, color = name)) +
+    geom_line()
+
+ggplotly(Barkley_Taylor)
+```
+
+# Player comparisons over time, fantasy (needs work for readability)
+
+```{r}
+Barkley_Taylor_Fantasy <- fantasy %>% 
+  filter(full_name %in% c("Saquon Barkley", "Jonathan Taylor"),
+         gameday <= as.Date("2021-01-03") | gameday >= as.Date("2021-09-01")) %>% 
+  ggplot(aes(x = gameday, y = fantasy_points_halfppr, fill = full_name)) +
+    geom_col(position = "dodge", width = 5)
+
+ggplotly(Barkley_Taylor_Fantasy)
+
+```
+
+# Player compared to mean and max of his position group over time
+
+```{r}
+player <- "Antonio Gibson"
+pos <- "RB"
+
+player_scores <- fantasy %>% 
+  filter(full_name == player)
+
+pos_scores <- fantasy %>% 
+  filter(position == pos) %>% 
+  group_by(position, week) %>%
+  mutate(pos_mean_halfppr = mean(fantasy_points_halfppr),
+         pos_max_halfppr = max(fantasy_points_halfppr))
+
+ggplot() +
+  geom_line(data = player_scores, aes(x = gameday, y = fantasy_points_halfppr), color = "red")+
+  geom_line(data = pos_scores, aes(x = gameday, y = pos_mean_halfppr)) +
+  geom_line(data = pos_scores, aes(x = gameday, y = pos_max_halfppr))
+
+```
+
+# Correlation Matrix
+
+```{r, fig.width=10,fig.height=11}
+library(GGally)
+
+dynasty %>%
+  filter(date == max(date)) %>%
+  select(-name, -Drafted, -College, -date, -Born) %>%
+  mutate(Experience = as.integer(Experience)) %>%
+  ggpairs(title = "Correlations of Dynasty Variables", ggplot2::aes(color = Position), proportions = 20)
+
+
+```
+
+## Notes from dynasty correlation matrix
+  * Age negatively correlates with each position except TE (no correlation). RB strongest.
+  * Height only correlates with RB and TE.
+  * Weight only correlates with RB value, but it's strong.
+  * Draft Class and Experience are perfectly negatively correlated (of course), but Experience, looks like Age but with QBs no longer significant.
+  * Draft Round and Draft Overall Pick are obviously nearly perfectly correlated. DOP negatively correlates with each position, though it's weaker for TE (Think Kittle, Waller as influential outliers).
+  
+```{r}
+library(ggcorrplot)
+
+dynasty_college <- dynasty %>%
+  filter(date == max(date)) %>%
+  select(value, College) %>%
+  drop_na(College) %>%
+  group_by(College) %>%
+  mutate(n = n()) %>%
+  filter(n >= 12) %>% 
+  arrange(desc(n)) %>%
+  select(-n)
+
+p.mat <- cor_pmat(model.matrix(~0+., data=dynasty_college))
+
+model.matrix(~0+., data=dynasty_college) %>%
+  cor(use="pairwise.complete.obs") %>%
+  ggcorrplot(show.diag = F, type="upper", p.mat = p.mat, insig = "blank")
+```
+
+## Notes from above
+
+  * Two colleges with at least 12 players in the league shows significant positive correlation
+    * LSU
+    * Oklahoma
+  * Three colleges with at least 12 players in the league show significant negative correlation
+    * Oklahoma State
+    * South Carolina
+    * Notre Dame
+  * Positional breakdowns should still be explored; however, those will result in small sample sizes.
 

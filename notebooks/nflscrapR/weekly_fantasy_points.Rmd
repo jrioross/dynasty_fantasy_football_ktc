@@ -5,6 +5,7 @@ output: html_document
 
 ```{r}
 library(nflfastR)
+library(tidyverse)
 ```
 
 # nflfastR sample code to create season ppr ppg
@@ -39,11 +40,11 @@ get_weekly_homeaway <- function(year = as.integer(format(Sys.Date(), "%Y")), hom
   inner_join(
     nflfastR::fast_scraper_roster(year) %>% 
       filter(position %in% c("QB", "WR", "RB", "TE")) %>% 
-      select(gsis_id, season, position, full_name, first_name, last_name),
+      select(gsis_id, season, position, full_name, first_name, last_name, headshot_url),
     by = c("player_id" = "gsis_id")) %>% 
   inner_join(fast_scraper_schedules(year), by = c("week" = "week", "recent_team" = sprintf("%s_team", homeaway))) %>% 
-  dplyr::mutate(fantasy_points = fantasy_points + 0.5*receptions) %>%
-  dplyr::select(full_name, first_name, last_name, recent_team, season, week, gameday, fantasy_points, fantasy_points, fantasy_points_ppr)
+  dplyr::mutate(fantasy_points_halfppr = fantasy_points + 0.5*receptions) %>%
+  dplyr::select(full_name, first_name, last_name, position, recent_team, season, week, gameday, fantasy_points, fantasy_points_halfppr, fantasy_points_ppr, headshot_url)
 }
 
 get_weekly_fantasy_season <- function(year = as.integer(format(Sys.Date(), "%Y"))){
@@ -60,6 +61,7 @@ weekly <- get_weekly_fantasy_season(2020) %>%
   bind_rows(get_weekly_fantasy_season(2021)) %>%
   mutate(full_name = ifelse(last_name == "Dillon", str_replace_all(full_name, "\\.", ""), full_name),
          first_name = ifelse(last_name == "Dillon", str_replace_all(first_name, "\\.", ""), first_name)) %>%
+  mutate(gameday = as.Date(gameday)) %>%
   arrange(full_name, gameday)
 
 weekly
