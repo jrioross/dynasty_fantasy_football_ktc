@@ -2,15 +2,15 @@ library(tidyverse)
 library(shiny)
 library(fresh)
 library(shinyjs)
-library(leaflet)
-library(leaflet.extras)
-library(sf)
 library(DT)
 library(shinyDataFilter)
 library(plotly)
 library(patchwork)
 library(shinycssloaders)
 library(shinymaterial)
+library(ggcorrplot)
+
+theme_set(theme_dark())
 
 
 ktcPalette <- c("ktcBlue" = "#4DB3E9",
@@ -24,3 +24,10 @@ ktcPalette <- c("ktcBlue" = "#4DB3E9",
 dynasty <- readRDS('../../data/dynasty_full.RDS')
 fantasy <- readRDS('../../data/weekly_fantasy.RDS')
 
+playerList <- dynasty %>% 
+  arrange(desc(date)) %>% 
+  select(name) %>% 
+  unique() %>% 
+  pull()
+
+positionsList <- c("QB", "RB", "WR", "TE")

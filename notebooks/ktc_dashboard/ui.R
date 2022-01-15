@@ -33,68 +33,82 @@ shinyUI(
       
       # Attributes tab
       tabPanel(h4("Attributes"),
-               # sidebarLayout(
-               #   sidebarPanel(
-               #     shiny_data_filter_ui("export_filter"),
-               #     div(class = 'text-center', downloadButton('download', 'Download')),
-               #     width = 3
-               #   ),
-               #   mainPanel(
-               #     wellPanel(DTOutput('data_table')),
-               #     width = 9
-               #   )
-               # )  
+               sidebarLayout(
+                 sidebarPanel(
+                   #shiny_data_filter_ui("export_filter"),
+                   checkboxGroupInput("attrPosSelection",
+                               "Select Position(s)",
+                               positionsList),
+                   actionButton('debug', "Debug"),
+                   width = 2
+                 ),
+                 mainPanel(
+                   fluidRow(
+                     column(
+                       width = 4,
+                       plotOutput("corrGraph")
+                     ),
+                     column(
+                       width = 8,
+                       plotlyOutput("attrScatter")
+                     )
+                   ),
+                   fluidRow(
+                     column(
+                       width = 12,
+                       plotlyOutput("fantasy_comparison")
+                     )
+                   )
+                 )
+               )
       ),
       
       # Positions tab
       tabPanel(h4("Positions"),
-               # sidebarPanel(
-               #   p(strong("Group 1"), style = "text-align: center;"),
-               #   shiny_data_filter_ui("compare_filter_1"),
-               #   width = 3
-               # ),
-               # mainPanel(
-               #   fluidRow(
-               #     actionButton(
-               #       inputId = "go",
-               #       label = "Compare Groups",
-               #       style = "color: #FFFFFF; background-color: #0A3254; border-color: #FFFFFF;"
-               #     ),
-               #     align = "center",
-               #     style = 'padding:10px;'
-               #   ),
-               #   tabsetPanel(
-               #     tabPanel("Demographics",
-               #              fluidRow(plotlyOutput("plot_race", height = "200px"), 
-               #                       plotlyOutput("plot_ethnicity", height = "200px"),
-               #                       plotlyOutput("plot_sex", height = "200px"),
-               #                       plotlyOutput("plot_age", height = "200px")
-               #              )
-               #     ),
-               #     tabPanel("Action Taken", plotlyOutput("plot_action")),
-               #     tabPanel("Loan Amounts", plotlyOutput("plot_amounts")),
-               #     tabPanel("Denial Reasons", plotlyOutput("plot_denial")),
-               #   ),
-               #   width = 6
-               # ),
-               # sidebarPanel(
-               #   p(strong("Group 2"), style = "text-align: center;"),
-               #   shiny_data_filter_ui("compare_filter_2"),
-               #   width = 3
-               # )
+               sidebarLayout(
+                 sidebarPanel(
+                   selectInput("posPlayerSelection",
+                               "Select Player 1",
+                               playerList),
+                   checkboxGroupInput("posPosSelection",
+                                      "Select Position(s)",
+                                      positionsList),
+                   actionButton('debug', "Debug"),
+                   width = 2
+                 ),
+                 mainPanel(
+                   fluidRow(
+                     column(
+                       width = 6,
+                       plotlyOutput("posBox")
+                     ),
+                     column(
+                       width = 6,
+                       plotlyOutput("posScatter")
+                     )
+                   ),
+                   fluidRow(
+                     column(
+                       width = 6,
+                       plotlyOutput("playerVposition")
+                     )
+                   )
+                 )
+               )
       ),
       
       # Players tab
       tabPanel(h4("Players"),
                sidebarLayout(
                  sidebarPanel(
-                   shiny_data_filter_ui("export_filter"),
+                   #shiny_data_filter_ui("export_filter"),
                    selectInput("player1",
                                "Select Player 1",
-                               unique(dynasty$name)),
+                               playerList),
                    selectInput("player2",
                                "Select Player 2",
-                               unique(dynasty$name)),
+                               playerList,
+                               selected = playerList[2]),
                    dateRangeInput("player_dates",
                                   "Date range:",
                                   start = min(dynasty$date),
@@ -103,30 +117,35 @@ shinyUI(
                                   max = max(dynasty$date),
                                   startview = "month",
                                   weekstart = 2),
-                   actionButton('debug', "Debug")
+                   actionButton('debug', "Debug"),
+                   width = 2
                  ),
                  mainPanel(
                    fluidRow(
                      column(
                        material_card(
                          title = "Player 1",
-                         imageOutput("card1_img"),
-                         htmlOutput(("card1_text"))
+                         img("card1_img"),
+                         htmlOutput("card1_text")
                        ),
-                       width = 6
+                       width = 3
                      ),
                      column(
-                       width = 6,
+                       width = 9,
                        plotlyOutput("dynasty_comparison")
                      )
                    ),
                    fluidRow(
                      column(
-                       #material_card(),
-                       width = 4.5
+                       material_card(
+                         title = "Player 2",
+                         img("card2_img"),
+                         htmlOutput("card2_text")
+                       ),
+                       width = 3
                      ),
                      column(
-                       width = 6,
+                       width = 9,
                        plotlyOutput("fantasy_comparison")
                      )
                    )

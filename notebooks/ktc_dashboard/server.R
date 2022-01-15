@@ -2,17 +2,98 @@ shinyServer(function(input, output) {
   
   ### ATTRIBUTES TAB ###
   
-
+  attrPos <- reactive({
+    
+    dynasty %>%
+      filter(Position %in% input$attrPosSelection,
+             date == max(date))
+      
+  })
+  
+  output$corrGraph <- renderPlot({
+    dyCorr <- attrPos() %>%
+      select(-name, -Drafted, -College, -date, -Born, -Position) %>%
+      cor(use = "pairwise.complete.obs")
+    
+    p.mat <- attrPos() %>%
+      select(-name, -Drafted, -College, -date, -Born, -Position) %>%
+      ggcorrplot::cor_pmat()
+    
+    ggcorrplot(dyCorr,
+               hc.order = TRUE,
+               type = "upper",
+               p.mat = p.mat,
+               colors = c("#E85262", "white", "#136C9D"),
+               ggtheme = theme_dark)
+  })
+  
+  output$attrScatter <- renderPlotly({
+    val_draft <- dynasty %>% 
+      group_by(name) %>% 
+      filter(date == max(date))
+      drop_na(Position) %>%
+      ggplot(aes(x = `Draft Position`, 
+                 y = value, 
+                 color = position,
+      )) +
+      geom_point(aes(text = sprintf("Name: %s<br>Draft Position: %s<br>Max Value: %s<br>Position: %s",
+                                    name, `Draft Position`, max_value, position
+      ))) +
+      geom_smooth(se = FALSE) +
+      facet_wrap(~position)
+    
+    ggplotly(val_draft, tooltip = 'text')
+  })
   
   ### POSITIONS TAB ###
   
-  # HMDA data filter 1 for compare tab
-  # compare_filter_1 <- callModule(
-  #   shiny_data_filter,
-  #   "compare_filter_1",
-  #   data = hmda_data,
-  #   verbose = FALSE)
+  posPlayer <- reactive({
+    
+    dynasty %>%
+      filter(name == input$posPlayerSelection)
+    
+  })
   
+  posPos <- reactive({
+    
+    dynasty %>%
+      filter(Position %in% input$posPosSelection)
+    
+  })
+  
+
+  output$posBox <- renderPlotly({
+    
+    vals_by_position <- posPos() %>%
+      filter(date == max(date)) %>% 
+      ggplot(aes(x = Position, y = value, fill = Position)) +
+      geom_boxplot()
+    
+    ggplotly(vals_by_position)
+    
+  })
+  
+  output$posScatter <- renderPlotly({
+    
+    
+    
+  })
+  
+  output$playerVposition <- reactive({
+    
+    pos_scores <- fantasy %>% 
+      filter(position == pos) %>% 
+      group_by(position, week) %>%
+      mutate(pos_mean_halfppr = mean(fantasy_points_halfppr),
+             pos_max_halfppr = max(fantasy_points_halfppr))
+    
+    ggplot() +
+      geom_line(data = posPlayer(), aes(x = gameday, y = fantasy_points_halfppr), color = "red")+
+      geom_line(data = pos_scores, aes(x = gameday, y = pos_mean_halfppr)) +
+      geom_line(data = pos_scores, aes(x = gameday, y = pos_max_halfppr))
+      #transition_reveal(gameday)
+    
+  })
   
   ### PLAYERS TAB ###
   
@@ -92,6 +173,35 @@ shinyServer(function(input, output) {
       filter(date == max(date))
     
     paste0("<b>Name: ", input$player1, "</b>",
+           "<br>Position: ", dcontent %>% select(Position),
+           "<br>Team: ", fcontent %>% select(recent_team),
+           "<br>Age: ", dcontent %>% select(Age),
+           "<br>Experience: ", dcontent %>% select(Experience),
+           "<br>Height: ", dcontent %>% select(Height),
+           "<br>Weight: ", dcontent %>% select(Weight))
+    
+  })
+  
+  output$card2_img <- renderImage({
+    
+    img <- player2_fantasy() %>%
+      filter(season == 2020) %>% 
+      select(headshot_url) %>%
+      unique()
+    img(src = img)
+    #img(img)
+    
+  })
+  
+  output$card2_text <- renderText({
+    
+    fcontent <- player2_fantasy() %>% 
+      filter(gameday == max(gameday))
+    
+    dcontent <- player2_dynasty() %>%
+      filter(date == max(date))
+    
+    paste0("<b>Name: ", input$player2, "</b>",
            "<br>Position: ", dcontent %>% select(Position),
            "<br>Team: ", fcontent %>% select(recent_team),
            "<br>Age: ", dcontent %>% select(Age),

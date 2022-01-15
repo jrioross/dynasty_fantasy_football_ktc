@@ -121,7 +121,8 @@ dynasty_full <- dynasty_values %>%
                               name == "Ronald Jones"~"RB",
                               name == "Chris Herndon"~"TE",
                               TRUE~Position),
-         College = ifelse(name == "Melvin Gordon", "Wisconsin", College)
+         College = ifelse(name == "Melvin Gordon", "Wisconsin", College),
+         Experience = as.integer(Experience)
          )
 
 dynasty_full

@@ -8,6 +8,8 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(plotly)
+library(gganimate)
+library(ggcorrplot)
 ```
 
 # Read in dynasty data
@@ -143,8 +145,8 @@ pos_scores <- fantasy %>%
 ggplot() +
   geom_line(data = player_scores, aes(x = gameday, y = fantasy_points_halfppr), color = "red")+
   geom_line(data = pos_scores, aes(x = gameday, y = pos_mean_halfppr)) +
-  geom_line(data = pos_scores, aes(x = gameday, y = pos_max_halfppr))
-
+  geom_line(data = pos_scores, aes(x = gameday, y = pos_max_halfppr)) +
+  transition_reveal(gameday)
 ```
 
 # Correlation Matrix
@@ -168,9 +170,29 @@ dynasty %>%
   * Draft Class and Experience are perfectly negatively correlated (of course), but Experience, looks like Age but with QBs no longer significant.
   * Draft Round and Draft Overall Pick are obviously nearly perfectly correlated. DOP negatively correlates with each position, though it's weaker for TE (Think Kittle, Waller as influential outliers).
   
-```{r}
-library(ggcorrplot)
 
+```{r}
+dyCorr <- dynasty %>%
+  filter(date == max(date)) %>%
+  select(-name, -Drafted, -College, -date, -Born, -Position) %>%
+  cor(use = "pairwise.complete.obs")
+  
+p.mat <- dynasty %>%
+  filter(date == max(date)) %>%
+  select(-name, -Drafted, -College, -date, -Born, -Position) %>%
+  ggcorrplot::cor_pmat()
+
+ggcorrplot(dyCorr,
+           hc.order = TRUE,
+           type = "upper",
+           p.mat = p.mat,
+           colors = c("#E85262", "white", "#136C9D"),
+           ggtheme = theme_dark)
+```
+
+
+
+```{r}
 dynasty_college <- dynasty %>%
   filter(date == max(date)) %>%
   select(value, College) %>%
