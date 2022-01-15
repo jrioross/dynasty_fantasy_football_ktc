@@ -33,55 +33,55 @@ shinyUI(
       
       # Attributes tab
       tabPanel(h4("Attributes"),
-               sidebarLayout(
-                 sidebarPanel(
-                   shiny_data_filter_ui("export_filter"),
-                   div(class = 'text-center', downloadButton('download', 'Download')),
-                   width = 3
-                 ),
-                 mainPanel(
-                   wellPanel(DTOutput('data_table')),
-                   width = 9
-                 )
-               )  
+               # sidebarLayout(
+               #   sidebarPanel(
+               #     shiny_data_filter_ui("export_filter"),
+               #     div(class = 'text-center', downloadButton('download', 'Download')),
+               #     width = 3
+               #   ),
+               #   mainPanel(
+               #     wellPanel(DTOutput('data_table')),
+               #     width = 9
+               #   )
+               # )  
       ),
       
       # Positions tab
       tabPanel(h4("Positions"),
-               sidebarPanel(
-                 p(strong("Group 1"), style = "text-align: center;"),
-                 shiny_data_filter_ui("compare_filter_1"),
-                 width = 3
-               ),
-               mainPanel(
-                 fluidRow(
-                   actionButton(
-                     inputId = "go",
-                     label = "Compare Groups",
-                     style = "color: #FFFFFF; background-color: #0A3254; border-color: #FFFFFF;"
-                   ),
-                   align = "center",
-                   style = 'padding:10px;'
-                 ),
-                 tabsetPanel(
-                   tabPanel("Demographics",
-                            fluidRow(plotlyOutput("plot_race", height = "200px"), 
-                                     plotlyOutput("plot_ethnicity", height = "200px"),
-                                     plotlyOutput("plot_sex", height = "200px"),
-                                     plotlyOutput("plot_age", height = "200px")
-                            )
-                   ),
-                   tabPanel("Action Taken", plotlyOutput("plot_action")),
-                   tabPanel("Loan Amounts", plotlyOutput("plot_amounts")),
-                   tabPanel("Denial Reasons", plotlyOutput("plot_denial")),
-                 ),
-                 width = 6
-               ),
-               sidebarPanel(
-                 p(strong("Group 2"), style = "text-align: center;"),
-                 shiny_data_filter_ui("compare_filter_2"),
-                 width = 3
-               )
+               # sidebarPanel(
+               #   p(strong("Group 1"), style = "text-align: center;"),
+               #   shiny_data_filter_ui("compare_filter_1"),
+               #   width = 3
+               # ),
+               # mainPanel(
+               #   fluidRow(
+               #     actionButton(
+               #       inputId = "go",
+               #       label = "Compare Groups",
+               #       style = "color: #FFFFFF; background-color: #0A3254; border-color: #FFFFFF;"
+               #     ),
+               #     align = "center",
+               #     style = 'padding:10px;'
+               #   ),
+               #   tabsetPanel(
+               #     tabPanel("Demographics",
+               #              fluidRow(plotlyOutput("plot_race", height = "200px"), 
+               #                       plotlyOutput("plot_ethnicity", height = "200px"),
+               #                       plotlyOutput("plot_sex", height = "200px"),
+               #                       plotlyOutput("plot_age", height = "200px")
+               #              )
+               #     ),
+               #     tabPanel("Action Taken", plotlyOutput("plot_action")),
+               #     tabPanel("Loan Amounts", plotlyOutput("plot_amounts")),
+               #     tabPanel("Denial Reasons", plotlyOutput("plot_denial")),
+               #   ),
+               #   width = 6
+               # ),
+               # sidebarPanel(
+               #   p(strong("Group 2"), style = "text-align: center;"),
+               #   shiny_data_filter_ui("compare_filter_2"),
+               #   width = 3
+               # )
       ),
       
       # Players tab
@@ -91,10 +91,10 @@ shinyUI(
                    shiny_data_filter_ui("export_filter"),
                    selectInput("player1",
                                "Select Player 1",
-                               dynasty$name,),
+                               unique(dynasty$name)),
                    selectInput("player2",
                                "Select Player 2",
-                               dynasty$name),
+                               unique(dynasty$name)),
                    dateRangeInput("player_dates",
                                   "Date range:",
                                   start = min(dynasty$date),
@@ -102,29 +102,32 @@ shinyUI(
                                   min = min(dynasty$date),
                                   max = max(dynasty$date),
                                   startview = "month",
-                                  weekstart = 2
-                   ),
-                   width = 3
+                                  weekstart = 2),
+                   actionButton('debug', "Debug")
                  ),
                  mainPanel(
                    fluidRow(
                      column(
-                       #playerOneCard(),
+                       material_card(
+                         title = "Player 1",
+                         imageOutput("card1_img"),
+                         htmlOutput(("card1_text"))
+                       ),
                        width = 6
                      ),
                      column(
-                       #playerTwoCard(),
-                       width = 6
+                       width = 6,
+                       plotlyOutput("dynasty_comparison")
                      )
                    ),
                    fluidRow(
                      column(
-                       plotlyOutput("dynasty_comparison"),
-                       width = 6
+                       #material_card(),
+                       width = 4.5
                      ),
                      column(
-                       #plotlyOutput("fantasy_history"),
-                       width = 6
+                       width = 6,
+                       plotlyOutput("fantasy_comparison")
                      )
                    )
                  )

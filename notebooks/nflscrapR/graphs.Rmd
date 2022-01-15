@@ -28,39 +28,39 @@ fantasy
 
 ```{r}
 dynasty %>% 
+  filter(date == max(date)) %>% 
   group_by(name) %>% 
   drop_na(Position) %>%
-  summarize(max_value = max(value), weight = max(Weight), position = first(Position)) %>% 
-  ggplot(aes(x = weight, y = max_value, color = position)) +
+  ggplot(aes(x = Weight, y = value, color = Position)) +
     geom_point() +
     geom_smooth(se = FALSE) +
-    facet_wrap(~position)
+    facet_wrap(~Position)
 ```
 
-# max_value vs height by position group
+# current value vs height by position group
 
 ```{r}
 dynasty %>% 
+  filter(date == max(date)) %>% 
   group_by(name) %>% 
   drop_na(Position) %>%
-  summarize(max_value = max(value), height = max(Height), position = first(Position)) %>% 
-  ggplot(aes(x = height, y = max_value, color = position)) +
+  ggplot(aes(x = Height, y = value, color = Position)) +
     geom_point() +
     geom_smooth(se = FALSE) +
-    facet_wrap(~position)
+    facet_wrap(~Position)
 ```
 
-# max_value vs age by position group
+# current value vs age by position group
 
 ```{r}
 dynasty %>% 
+  filter(date == max(date)) %>% 
   group_by(name) %>% 
   drop_na(Position) %>%
-  summarize(max_value = max(value), age = max(Age), position = first(Position)) %>% 
-  ggplot(aes(x = age, y = max_value, color = position)) +
+  ggplot(aes(x = Age, y = value, color = Position)) +
     geom_point() +
     geom_smooth(se = FALSE) +
-    facet_wrap(~position)
+    facet_wrap(~Position)
 ```
 
 # max_value vs Draft Pick Overall by position group
@@ -109,13 +109,19 @@ ggplotly(Barkley_Taylor)
 # Player comparisons over time, fantasy (needs work for readability)
 
 ```{r}
-Barkley_Taylor_Fantasy <- fantasy %>% 
+BT_2020 <- fantasy %>% 
   filter(full_name %in% c("Saquon Barkley", "Jonathan Taylor"),
-         gameday <= as.Date("2021-01-03") | gameday >= as.Date("2021-09-01")) %>% 
-  ggplot(aes(x = gameday, y = fantasy_points_halfppr, fill = full_name)) +
-    geom_col(position = "dodge", width = 5)
+         season == 2020) 
+  
+BT_2021 <- fantasy %>% 
+  filter(full_name %in% c("Saquon Barkley", "Jonathan Taylor"),
+         season == 2021) 
+  
+BT_gg <- ggplot(data = fantasy, aes(x = gameday)) +
+    geom_line(data = BT_2020, aes(y = fantasy_points_halfppr, color = full_name)) +
+    geom_line(data = BT_2021, aes(y = fantasy_points_halfppr, color = full_name))
 
-ggplotly(Barkley_Taylor_Fantasy)
+ggplotly(BT_gg)
 
 ```
 

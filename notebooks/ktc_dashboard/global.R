@@ -10,6 +10,7 @@ library(shinyDataFilter)
 library(plotly)
 library(patchwork)
 library(shinycssloaders)
+library(shinymaterial)
 
 
 ktcPalette <- c("ktcBlue" = "#4DB3E9",
