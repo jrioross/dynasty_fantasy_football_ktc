@@ -182,12 +182,14 @@ p.mat <- dynasty %>%
   select(-name, -Drafted, -College, -date, -Born, -Position) %>%
   ggcorrplot::cor_pmat()
 
-ggcorrplot(dyCorr,
+p <- ggcorrplot(dyCorr,
            hc.order = TRUE,
            type = "upper",
            p.mat = p.mat,
            colors = c("#E85262", "white", "#136C9D"),
            ggtheme = theme_dark)
+
+ggplotly(p)
 ```
 
 

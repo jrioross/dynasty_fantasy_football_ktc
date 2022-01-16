@@ -15,7 +15,7 @@ library(lubridate)
 ```{r}
 dynasty_historical <- read_csv('../../data/ktc_historical_dynasty_values.csv')
 dynasty_historical %>%
-  arrange(desc(date))
+  filter(date == max(date))
 ```
 
 # Read in devy values

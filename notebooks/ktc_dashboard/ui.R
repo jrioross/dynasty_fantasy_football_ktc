@@ -27,9 +27,10 @@ shinyUI(
       windowTitle = "Dynasty Value Tool | KeepTradeCut",
       
       # Title image
-      title = img(src = "ktc-gif.gif", 
+      title = tags$a(img(src = "ktc-gif.gif", 
                   style = 'margin-top: 0px', 
                   height = "40px"),
+                  href = "https://keeptradecut.com/"),
       
       # Attributes tab
       tabPanel(h4("Attributes"),
@@ -38,29 +39,28 @@ shinyUI(
                    #shiny_data_filter_ui("export_filter"),
                    checkboxGroupInput("attrPosSelection",
                                "Select Position(s)",
-                               positionsList),
+                               positionsList,
+                               selected = positionsList),
                    actionButton('debug', "Debug"),
                    width = 2
                  ),
                  mainPanel(
                    fluidRow(
                      column(
-                       width = 4,
-                       plotOutput("corrGraph")
+                       width = 6,
+                       plotlyOutput("corrGraph")
                      ),
                      column(
-                       width = 8,
+                       width = 6,
                        plotlyOutput("attrScatter")
                      )
-                   ),
-                   fluidRow(
-                     column(
-                       width = 12,
-                       plotlyOutput("fantasy_comparison")
+                   )
+                   # fluidRow(
+                   #   column(
+                   #     width = 12,
+                   #     plotlyOutput("fantasy_comparison")
                      )
                    )
-                 )
-               )
       ),
       
       # Positions tab
@@ -72,7 +72,8 @@ shinyUI(
                                playerList),
                    checkboxGroupInput("posPosSelection",
                                       "Select Position(s)",
-                                      positionsList),
+                                      positionsList,
+                                      selected = positionsList),
                    actionButton('debug', "Debug"),
                    width = 2
                  ),
@@ -82,20 +83,21 @@ shinyUI(
                        width = 6,
                        plotlyOutput("posBox")
                      ),
-                     column(
-                       width = 6,
-                       plotlyOutput("posScatter")
-                     )
+                   column(
+                     width = 6,
+                     plotlyOutput("posScatter")
                    ),
                    fluidRow(
                      column(
-                       width = 6,
-                       plotlyOutput("playerVposition")
-                     )
-                   )
-                 )
+                       width = 12,
+                       plotOutput("playerVposition")
+                  )
                )
+            )
+          )
+        )
       ),
+
       
       # Players tab
       tabPanel(h4("Players"),
@@ -125,7 +127,7 @@ shinyUI(
                      column(
                        material_card(
                          title = "Player 1",
-                         img("card1_img"),
+                         htmlOutput("card1_img"),
                          htmlOutput("card1_text")
                        ),
                        width = 3
@@ -139,7 +141,7 @@ shinyUI(
                      column(
                        material_card(
                          title = "Player 2",
-                         img("card2_img"),
+                         htmlOutput("card2_img"),
                          htmlOutput("card2_text")
                        ),
                        width = 3
