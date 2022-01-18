@@ -10,7 +10,33 @@ shinyServer(function(input, output) {
       
   })
   
-  output$corrGraph <- renderPlotly({
+  v <- reactiveValues(xVar = "Age")
+  
+  observeEvent(input$xAge, {
+    v$xVar <- "Age"
+  })
+  
+  observeEvent(input$xExp, {
+    v$xVar <- "Experience"
+  })
+  
+  observeEvent(input$xHeight, {
+    v$xVar <- "Height"
+  })
+  
+  observeEvent(input$xWeight, {
+    v$xVar <- "Weight"
+  })
+  
+  observeEvent(input$xDraftRound, {
+    v$xVar <- "`Draft Round`"
+  })
+  
+  observeEvent(input$xDraftOverall, {
+    v$xVar <- "`Draft Overall Pick`"
+  })
+  
+  output$corrGraph <- renderPlot({
     
     dyCorr <- attrPos() %>%
       select(-name, -Drafted, -College, -date, -Born, -Position) %>%
@@ -20,34 +46,66 @@ shinyServer(function(input, output) {
       select(-name, -Drafted, -College, -date, -Born, -Position) %>%
       ggcorrplot::cor_pmat()
     
-    p <- ggcorrplot(dyCorr,
+    ggcorrplot(dyCorr,
                hc.order = TRUE,
                type = "upper",
                p.mat = p.mat,
                colors = c("#E85262", "white", "#136C9D"),
                ggtheme = theme_dark)
     
-    ggplotly(p)
+    #ggplotly(p)
     
   })
   
   output$attrScatter <- renderPlotly({
     
     val_draft <- dynasty %>% 
-      group_by(name) %>% 
       filter(date == max(date)) %>%
       drop_na(Position) %>%
-      ggplot(aes(x = `Draft Overall Pick`, 
+      ggplot(aes(x = eval(parse(text = v$xVar)), 
                  y = value, 
-                 color = Position,
+                 color = Position
       )) +
-      geom_point(aes(text = sprintf("Name: %s<br>Draft Position: %s<br>Value: %s<br>Position: %s",
-                                    name, `Draft Overall Pick`, value, Position
+      geom_point(aes(text = sprintf("Name: %s<br>%s: %s<br>Value: %s<br>Position: %s",
+                                    name, v$xVar, eval(parse(text = v$xVar)), value, Position
+                                    
       ))) +
       geom_smooth(se = FALSE) +
       facet_wrap(~Position)
     
-    ggplotly(val_draft, tooltip = 'text')
+    ggplotly(val_draft, 
+             tooltip = 'text'
+             )
+    
+  })
+  
+  output$collegeCorr <- renderPlot({
+    
+    dynasty_college <- dynasty %>%
+      filter(date == max(date)) %>%
+      select(value, College) %>%
+      drop_na(College) %>%
+      group_by(College) %>%
+      mutate(n = n()) %>%
+      filter(n >= 10) %>% 
+      arrange(desc(n)) %>%
+      select(-n)
+    
+    dummy <- model.matrix(~0+., data=dynasty_college)
+    colnames(dummy) <- sub("College", "", colnames(dummy))
+    
+    p.matTrimmed <- cor_pmat(dummy)[,1, drop = FALSE]
+    
+    corTrimmed <- cor(dummy, use="pairwise.complete.obs")[,1, drop = FALSE]
+    
+    ggcorrplot(corTrimmed,
+                     show.diag = F,
+                     type="lower",
+                     p.mat = p.matTrimmed,
+                     insig = "blank"
+    )
+    
+    #ggplotly(cp)
     
   })
   
@@ -100,14 +158,24 @@ shinyServer(function(input, output) {
 
   })
 
-  output$playerVposition <- renderPlot({
+  output$playerVposition <- renderPlotly({
 
-      #transition_reveal(gameday)
+    #transition_reveal(gameday)
     
-    ggplot() +
-      geom_line(data = posPlayer(), aes(x = date, y = value), color = "red")+
-      geom_line(data = posDynasty(), aes(x = date, y = pos_mean)) +
-      geom_line(data = posDynasty(), aes(x = date, y = pos_max))
+    playerPos <- posPlayer() %>%
+      filter(date == min(date)) %>%
+      select(Position) %>%
+      unique()
+    
+    posData <- posDynasty() %>%
+      filter(Position %in% playerPos)
+    
+    pp <- ggplot() +
+      geom_line(data = posPlayer(), aes(x = date, y = value), color = ktcPalette['ktcBlue'])+
+      geom_line(data = posData, aes(x = date, y = pos_mean)) +
+      geom_line(data = posData, aes(x = date, y = pos_max))
+    
+    ggplotly(pp)
 
   })
   
@@ -172,7 +240,7 @@ shinyServer(function(input, output) {
   output$card1_img <- renderUI({
     
     src <- player1_fantasy() %>%
-      filter(season == 2020) %>% 
+      filter(season == 2021) %>% 
       select(headshot_url) %>%
       unique()
     
@@ -201,7 +269,7 @@ shinyServer(function(input, output) {
   output$card2_img <- renderUI({
     
     src <- player2_fantasy() %>%
-      filter(season == 2020) %>% 
+      filter(season == 2021) %>% 
       select(headshot_url) %>%
       unique()
     

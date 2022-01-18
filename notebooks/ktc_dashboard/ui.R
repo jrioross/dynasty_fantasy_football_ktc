@@ -48,19 +48,27 @@ shinyUI(
                    fluidRow(
                      column(
                        width = 6,
-                       plotlyOutput("corrGraph")
+                       plotOutput("corrGraph")
                      ),
                      column(
                        width = 6,
-                       plotlyOutput("attrScatter")
+                       plotlyOutput("attrScatter"),
+                       actionButton("xAge", "Age"),
+                       actionButton("xExp", "Experience"),
+                       actionButton("xHeight", "Height"),
+                       actionButton("xWeight", "Weight"),
+                       actionButton("xDraftRound", "Draft Round"),
+                       actionButton("xDraftOverall", "Draft Overall Pick")
+                     )
+                   ),
+                   fluidRow(
+                     column(
+                       width = 12,
+                       plotOutput("collegeCorr")
                      )
                    )
-                   # fluidRow(
-                   #   column(
-                   #     width = 12,
-                   #     plotlyOutput("fantasy_comparison")
-                     )
-                   )
+                 )
+               )
       ),
       
       # Positions tab
@@ -90,7 +98,7 @@ shinyUI(
                    fluidRow(
                      column(
                        width = 12,
-                       plotOutput("playerVposition")
+                       plotlyOutput("playerVposition")
                   )
                )
             )
@@ -125,11 +133,9 @@ shinyUI(
                  mainPanel(
                    fluidRow(
                      column(
-                       material_card(
-                         title = "Player 1",
-                         htmlOutput("card1_img"),
-                         htmlOutput("card1_text")
-                       ),
+                       style = paste0("border: 2px solid", ktcPalette['ktcBlue']),
+                       htmlOutput("card1_img"),
+                       htmlOutput("card1_text"),
                        width = 3
                      ),
                      column(
@@ -139,11 +145,9 @@ shinyUI(
                    ),
                    fluidRow(
                      column(
-                       material_card(
-                         title = "Player 2",
-                         htmlOutput("card2_img"),
-                         htmlOutput("card2_text")
-                       ),
+                       style = paste0("border: 2px solid", ktcPalette['ktcLightRed']),
+                       htmlOutput("card2_img"),
+                       htmlOutput("card2_text"),
                        width = 3
                      ),
                      column(

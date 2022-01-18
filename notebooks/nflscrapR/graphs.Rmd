@@ -127,6 +127,23 @@ ggplotly(BT_gg)
 
 ```
 
+```{r}
+BT_2020 <- fantasy %>% 
+  filter(full_name %in% c("Saquon Barkley", "Jonathan Taylor"),
+         season == 2020) 
+  
+BT_2021 <- fantasy %>% 
+  filter(full_name %in% c("Saquon Barkley", "Jonathan Taylor"),
+         season == 2021) 
+  
+BT_gg <- ggplot(data = fantasy, aes(x = gameday)) +
+    geom_line(data = BT_2020, aes(y = fantasy_points_halfppr, color = full_name)) +
+    geom_line(data = BT_2021, aes(y = fantasy_points_halfppr, color = full_name))
+
+#ggplotly(BT_gg)
+```
+
+
 # Player compared to mean and max of his position group over time
 
 ```{r}
@@ -195,6 +212,9 @@ ggplotly(p)
 
 
 ```{r}
+library(corrr)
+library(corrplot)
+
 dynasty_college <- dynasty %>%
   filter(date == max(date)) %>%
   select(value, College) %>%
@@ -205,11 +225,25 @@ dynasty_college <- dynasty %>%
   arrange(desc(n)) %>%
   select(-n)
 
-p.mat <- cor_pmat(model.matrix(~0+., data=dynasty_college))
+dummy <- model.matrix(~0+., data=dynasty_college)
 
-model.matrix(~0+., data=dynasty_college) %>%
-  cor(use="pairwise.complete.obs") %>%
-  ggcorrplot(show.diag = F, type="upper", p.mat = p.mat, insig = "blank")
+p.mat <- cor_pmat(dummy)
+
+corTrimmed <- cor(dummy, use="pairwise.complete.obs")[,1, drop = FALSE]
+
+cp <- corrplot(corTrimmed,
+         type = 'lower',
+         cl.pos = 'n',
+         method = 'color',
+         tl.col = 'black'
+         ) 
+
+  # as_tibble() %>% View()
+  # ggcorrplot(show.diag = F,
+  #            type="upper",
+  #            p.mat = p.mat,
+  #            insig = "blank"
+  #          )
 ```
 
 ## Notes from above
@@ -222,4 +256,32 @@ model.matrix(~0+., data=dynasty_college) %>%
     * South Carolina
     * Notre Dame
   * Positional breakdowns should still be explored; however, those will result in small sample sizes.
+
+```{r}
+dynasty_college <- dynasty %>%
+  filter(date == max(date)) %>%
+  select(value, College) %>%
+  drop_na(College) %>%
+  group_by(College) %>%
+  mutate(n = n()) %>%
+  filter(n >= 10) %>% 
+  arrange(desc(n)) %>%
+  select(-n)
+
+dummy <- model.matrix(~0+., data=dynasty_college)
+colnames(dummy) <- sub("College", "", colnames(dummy))
+
+p.matTrimmed <- cor_pmat(dummy)[,1, drop = FALSE]
+
+corTrimmed <- cor(dummy, use="pairwise.complete.obs")[,1, drop = FALSE]
+
+cp <- ggcorrplot(corTrimmed,
+           show.diag = F,
+           type="lower",
+           p.mat = p.matTrimmed,
+           insig = "blank"
+         )
+
+ggplotly(cp)
+```
 
