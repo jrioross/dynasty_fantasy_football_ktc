@@ -7,18 +7,21 @@ shinyUI(
         create_theme(
           theme = "default",
           bs_vars_navbar(
-            default_bg = ktcPalette["ktcMenuBlue"],
+            default_bg = ktcPalette["ktcLightGrey"],
             default_link_color = ktcPalette["ktcBlue"],
-            default_link_active_color = "#FFFFFF",
+            default_link_active_color = ktcPalette["ktcLightRed"],
             default_link_hover_color = "#FFFFFF",
             height = "45px",
           ),
           bs_vars_font(
-            family_sans_serif = "Lato",
+            family_sans_serif = "Helvetica",
             size_base = "14px",
           ),
           bs_vars_color(
             brand_primary = ktcPalette["ktcBlue"],
+          ),
+          bs_vars_wells(
+            #bg = ktcPalette["ktcLightGrey"]
           )
         )
       ),
@@ -33,7 +36,7 @@ shinyUI(
                   href = "https://keeptradecut.com/"),
       
       # Attributes tab
-      tabPanel(h4("Attributes"),
+      tabPanel(h4("Research Player Attributes"),
                sidebarLayout(
                  sidebarPanel(
                    #shiny_data_filter_ui("export_filter"),
@@ -41,17 +44,21 @@ shinyUI(
                                "Select Position(s)",
                                positionsList,
                                selected = positionsList),
-                   actionButton('debug', "Debug"),
+                   #actionButton('debug', "Debug"),
                    width = 2
                  ),
                  mainPanel(
                    fluidRow(
                      column(
                        width = 6,
+                       div(style = "text-align:center; font-size:18px;",
+                           HTML('<b>Correlations of Attributes & Dynasty Value</b>')),
                        plotOutput("corrGraph")
                      ),
                      column(
                        width = 6,
+                       div(style = "text-align:center; font-size:18px; font-weight:bold;",
+                           htmlOutput("attrScatterTitle")),
                        plotlyOutput("attrScatter"),
                        actionButton("xAge", "Age"),
                        actionButton("xExp", "Experience"),
@@ -61,9 +68,12 @@ shinyUI(
                        actionButton("xDraftOverall", "Draft Overall Pick")
                      )
                    ),
+                   tags$style(type='text/css', "#attrScatter {margin-bottom: 15px;}"),
                    fluidRow(
                      column(
                        width = 12,
+                       div(style = "vertical-align:bottom; text-align:center; font-size:18px; font-weight:bold;",
+                           "Correlations between College and Dynasty Value"),
                        plotOutput("collegeCorr")
                      )
                    )
@@ -72,17 +82,18 @@ shinyUI(
       ),
       
       # Positions tab
-      tabPanel(h4("Positions"),
+      tabPanel(h4("Research Player v Positions"),
                sidebarLayout(
                  sidebarPanel(
                    selectInput("posPlayerSelection",
                                "Select Player 1",
-                               playerList),
+                               playerList,
+                               selected = "Jonathan Taylor"),
                    checkboxGroupInput("posPosSelection",
                                       "Select Position(s)",
                                       positionsList,
                                       selected = positionsList),
-                   actionButton('debug', "Debug"),
+                   #actionButton('debug', "Debug"),
                    width = 2
                  ),
                  mainPanel(
@@ -108,7 +119,7 @@ shinyUI(
 
       
       # Players tab
-      tabPanel(h4("Players"),
+      tabPanel(h4("Research Player v Player"),
                sidebarLayout(
                  sidebarPanel(
                    #shiny_data_filter_ui("export_filter"),
@@ -119,7 +130,7 @@ shinyUI(
                                "Select Player 2",
                                playerList,
                                selected = playerList[2]),
-                   dateRangeInput("player_dates",
+                   dateRangeInput("playerDates",
                                   "Date range:",
                                   start = min(dynasty$date),
                                   end = max(dynasty$date),
@@ -127,7 +138,7 @@ shinyUI(
                                   max = max(dynasty$date),
                                   startview = "month",
                                   weekstart = 2),
-                   actionButton('debug', "Debug"),
+                   #actionButton('debug', "Debug"),
                    width = 2
                  ),
                  mainPanel(

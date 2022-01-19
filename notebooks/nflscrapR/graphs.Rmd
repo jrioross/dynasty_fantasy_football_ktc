@@ -144,6 +144,17 @@ BT_gg <- ggplot(data = fantasy, aes(x = gameday)) +
 ```
 
 
+```{r}
+BT <- fantasy %>%
+  filter(full_name %in% c("Jonathan Taylor", "Saquon Barkley"))
+
+ggplot(BT, aes(x = gameday, fantasy_points_halfppr, color = full_name, label = paste0(round(fantasy_points_halfppr, 0)))) +
+         geom_segment(aes(x = gameday, y = 0, yend = fantasy_points_halfppr, xend = gameday), color = "grey50") +
+        geom_point(size = 7) +
+        geom_text(color = "white", size = 2)
+```
+
+
 # Player compared to mean and max of his position group over time
 
 ```{r}

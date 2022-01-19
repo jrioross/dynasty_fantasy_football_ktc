@@ -10,7 +10,7 @@ library(shinycssloaders)
 library(shinymaterial)
 library(ggcorrplot)
 
-theme_set(theme_dark())
+theme_set(theme_minimal())
 
 
 ktcPalette <- c("ktcBlue" = "#4DB3E9",
