@@ -9,7 +9,7 @@ shinyUI(
           bs_vars_navbar(
             default_bg = ktcPalette["ktcLightGrey"],
             default_link_color = ktcPalette["ktcBlue"],
-            default_link_active_color = ktcPalette["ktcLightRed"],
+            default_link_active_color = ktcPalette["ktcDarkRed"],
             default_link_hover_color = "#FFFFFF",
             height = "45px",
           ),
@@ -72,8 +72,8 @@ shinyUI(
                    fluidRow(
                      column(
                        width = 12,
-                       div(style = "vertical-align:bottom; text-align:center; font-size:18px; font-weight:bold;",
-                           "Correlations between College and Dynasty Value"),
+                       # div(style = "vertical-align:bottom; text-align:center; font-size:18px; font-weight:bold;",
+                       #     "Correlations between College and Dynasty Value"),
                        plotOutput("collegeCorr")
                      )
                    )
