@@ -9,7 +9,7 @@ shinyUI(
           bs_vars_navbar(
             default_bg = ktcPalette["ktcLightGrey"],
             default_link_color = ktcPalette["ktcBlue"],
-            default_link_active_color = ktcPalette["ktcDarkRed"],
+            default_link_active_color = ktcPalette["ktcLightRed"],
             default_link_hover_color = "#FFFFFF",
             height = "45px",
           ),
