@@ -2,6 +2,14 @@ shinyServer(function(input, output) {
   
   ### ATTRIBUTES TAB ###
   
+  attrPlayer <- reactive({
+    
+    dynasty %>%
+      filter(name == input$attrPlayerSelection,
+             date == max(date))
+    
+  })
+  
   attrPos <- reactive({
     
     dynasty %>%
@@ -73,11 +81,21 @@ shinyServer(function(input, output) {
       ggplot(aes(x = eval(parse(text = v$xVar)), 
                  y = value, 
                  color = Position
-      )) +
+      ), alpha = 0.5) +
       geom_point(aes(text = sprintf("Name: %s<br>%s: %s<br>Value: %s<br>Position: %s",
                                     name, v$xVar, eval(parse(text = v$xVar)), value, Position
                                     
       ))) +
+      geom_point(data = attrPlayer(),
+                 aes(x = eval(parse(text = v$xVar)),
+                     y = value,
+                     text = sprintf("Name: %s<br>%s: %s<br>Value: %s<br>Position: %s",
+                                    name, v$xVar, eval(parse(text = v$xVar)), value, Position
+                                    )
+                     ),
+                 color = "orange",
+                 size = 2.5
+                 )+
       geom_smooth(se = FALSE) +
       facet_wrap(~Position) +
       labs(x = v$xVar)
@@ -167,7 +185,8 @@ shinyServer(function(input, output) {
 
     ggplot() +
       geom_point(data = posPlayer()%>% filter(date == max(date)), aes(x = date, y = value),
-                 color = ktcPalette['ktcBlue']) +
+                 color = ktcPalette['ktcBlue'],
+                 size = 2.5) +
       geom_jitter(data = posPos() %>% filter(date == max(date)), aes(x = date, y = value),
                   alpha = 0.3) +
       labs(title = "Player Value Compared to Selected Positions")

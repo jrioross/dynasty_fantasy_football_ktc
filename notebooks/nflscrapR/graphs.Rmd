@@ -296,3 +296,33 @@ cp <- ggcorrplot(corTrimmed,
 ggplotly(cp)
 ```
 
+```{r}
+dynasty_college <- dynasty %>%
+  filter(date == max(date)) %>%
+  select(value, College) %>%
+  drop_na(College) %>%
+  group_by(College) %>%
+  mutate(n = n()) %>%
+  filter(n >= 10) %>% 
+  arrange(desc(n)) %>%
+  select(-n)
+
+dummy <- model.matrix(~0+., data=dynasty_college) 
+colnames(dummy) <- sub("College", "", colnames(dummy))
+
+p.matTrimmed <- cor_pmat(dummy)[,1, drop = FALSE]
+
+corTrimmed <- cor(dummy, use="pairwise.complete.obs")[,1, drop = FALSE]
+
+p <- plot_ly(y=rownames(corTrimmed), x=colnames(corTrimmed), 
+            z = corTrimmed, 
+            type = "heatmap", 
+            colorscale= c("red", "white", "blue"),
+            showscale = T,
+            zmin = -1,
+            zmax = 1) %>%
+    layout(margin = list(l=120))
+p
+
+```
+

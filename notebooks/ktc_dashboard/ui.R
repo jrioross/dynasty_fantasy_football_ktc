@@ -35,11 +35,31 @@ shinyUI(
                   height = "40px"),
                   href = "https://keeptradecut.com/"),
       
+      # Home tab
+      tabPanel(h4("Home"),
+               fluidPage(
+                 tags$head(
+                 # includeHTML("cardHTML.html"),
+                 # includeCSS("cardCSS.css"),
+                 # includeScript("cardJS.js")
+                   tags$script(src = "cardJS.js")
+                 ),
+                 tags$head(
+                   tags$link(rel = "stylesheet", type = "text/css", href = "cardCSS.css"),
+                 ),
+                 box(tags$body(includeHTML("www/cardHTML.html"))
+            )
+          )
+      ),
+      
       # Attributes tab
       tabPanel(h4("Research Player Attributes"),
                sidebarLayout(
                  sidebarPanel(
-                   #shiny_data_filter_ui("export_filter"),
+                   selectInput("attrPlayerSelection",
+                               "Select a Player",
+                               playerList,
+                               selected = "Jonathan Taylor"),
                    checkboxGroupInput("attrPosSelection",
                                "Select Position(s)",
                                positionsList,
@@ -86,7 +106,7 @@ shinyUI(
                sidebarLayout(
                  sidebarPanel(
                    selectInput("posPlayerSelection",
-                               "Select Player 1",
+                               "Select a Player",
                                playerList,
                                selected = "Jonathan Taylor"),
                    checkboxGroupInput("posPosSelection",
@@ -131,7 +151,7 @@ shinyUI(
                                playerList,
                                selected = playerList[2]),
                    dateRangeInput("playerDates",
-                                  "Date range:",
+                                  "Select a Date Range",
                                   start = min(dynasty$date),
                                   end = max(dynasty$date),
                                   min = min(dynasty$date),
