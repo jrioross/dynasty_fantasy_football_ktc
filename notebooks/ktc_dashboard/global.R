@@ -10,6 +10,8 @@ library(patchwork)
 library(shinycssloaders)
 library(shinymaterial)
 library(ggcorrplot)
+library(heatmaply)
+
 
 theme_set(theme_minimal())
 

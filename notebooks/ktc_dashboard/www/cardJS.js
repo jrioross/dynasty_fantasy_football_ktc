@@ -7,6 +7,6 @@ $(document).on('click', '.flip', function () {
 $('.card').each(function () {
   let href = $(this).data('href');
   $(this).find('.image').css({
-    backgroundImage: ['url(', href, ')'].join('')
+    backgroundColor: "#626971"
   });
 });

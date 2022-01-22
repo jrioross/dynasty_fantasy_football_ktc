@@ -36,21 +36,18 @@ shinyUI(
                   href = "https://keeptradecut.com/"),
       
       # Home tab
-      tabPanel(h4("Home"),
-               fluidPage(
-                 tags$head(
-                 # includeHTML("cardHTML.html"),
-                 # includeCSS("cardCSS.css"),
-                 # includeScript("cardJS.js")
-                   tags$script(src = "cardJS.js")
-                 ),
-                 tags$head(
-                   tags$link(rel = "stylesheet", type = "text/css", href = "cardCSS.css"),
-                 ),
-                 box(tags$body(includeHTML("www/cardHTML.html"))
-            )
-          )
-      ),
+      # tabPanel(h4("Home"),
+      #          fluidPage(
+      #            tags$head(
+      #              tags$script(src = "cardJS.js")
+      #            ),
+      #            tags$head(
+      #              tags$link(rel = "stylesheet", type = "text/css", href = "cardCSS.css"),
+      #            ),
+      #            box(tags$body(includeHTML("www/cardHTML.html"))
+      #       )
+      #     )
+      # ),
       
       # Attributes tab
       tabPanel(h4("Research Player Attributes"),
@@ -64,16 +61,15 @@ shinyUI(
                                "Select Position(s)",
                                positionsList,
                                selected = positionsList),
-                   #actionButton('debug', "Debug"),
                    width = 2
                  ),
                  mainPanel(
                    fluidRow(
                      column(
                        width = 6,
-                       div(style = "text-align:center; font-size:18px;",
-                           HTML('<b>Correlations of Attributes & Dynasty Value</b>')),
-                       plotOutput("corrGraph")
+                       # div(style = "text-align:center; font-size:18px;",
+                       #     HTML('<b>Correlations of Attributes & Dynasty Value</b>')),
+                       plotlyOutput("corrGraph")
                      ),
                      column(
                        width = 6,
@@ -88,15 +84,17 @@ shinyUI(
                        actionButton("xDraftOverall", "Draft Overall Pick")
                      )
                    ),
-                   tags$style(type='text/css', "#attrScatter {margin-bottom: 15px;}"),
+                   tags$style(type='text/css', "#corrGraph {margin-top: 3px;}"),
+                   tags$style(type='text/css', "#attrScatter {margin-bottom: 10px;}"),
                    fluidRow(
                      column(
                        width = 12,
                        # div(style = "vertical-align:bottom; text-align:center; font-size:18px; font-weight:bold;",
                        #     "Correlations between College and Dynasty Value"),
-                       plotOutput("collegeCorr")
+                       plotlyOutput("collegeCorr")
                      )
-                   )
+                   ),
+                   tags$style(type='text/css', "#collegeCorr {margin-top: 7px;}")
                  )
                )
       ),
@@ -159,6 +157,7 @@ shinyUI(
                                   startview = "month",
                                   weekstart = 2),
                    #actionButton('debug', "Debug"),
+                   tags$style(HTML(".datepicker {z-index:99999 !important;}")),
                    width = 2
                  ),
                  mainPanel(

@@ -220,6 +220,31 @@ p <- ggcorrplot(dyCorr,
 ggplotly(p)
 ```
 
+```{r}
+library(heatmaply)
+
+dyCorr <- dynasty %>%
+  filter(date == max(date)) %>%
+  select(-name, -Drafted, -College, -date, -Born, -Position) %>%
+  cor(use = "pairwise.complete.obs")
+  
+p.mat <- dynasty %>%
+  filter(date == max(date)) %>%
+  select(-name, -Drafted, -College, -date, -Born, -Position) %>%
+  ggcorrplot::cor_pmat()
+
+heatmaply_cor(
+  dyCorr,
+  label_names = c("x", "y", "Correlation"),
+  Rowv = FALSE,
+  Colv = FALSE,
+  main = "Correlations of Attributes & Dynasty Value",
+  # cellnote = "x",
+  # draw_cellnote = if (p.mat <= 0.05){TRUE} else {FALSE}
+)
+```
+
+
 
 
 ```{r}
@@ -323,6 +348,37 @@ p <- plot_ly(y=rownames(corTrimmed), x=colnames(corTrimmed),
             zmax = 1) %>%
     layout(margin = list(l=120))
 p
+
+```
+
+```{r}
+library(heatmaply)
+
+dynasty_college <- dynasty %>%
+  filter(date == max(date)) %>%
+  select(value, College) %>%
+  drop_na(College) %>%
+  group_by(College) %>%
+  mutate(n = n()) %>%
+  filter(n >= 10) %>% 
+  arrange(desc(n)) %>%
+  select(-n)
+
+dummy <- model.matrix(~0+., data=dynasty_college) 
+colnames(dummy) <- sub("College", "", colnames(dummy))
+
+p.matTrimmed <- cor_pmat(dummy)[,1, drop = FALSE]
+
+corTrimmed <- cor(dummy, use="pairwise.complete.obs")[,1, drop = FALSE]
+
+heatmaply_cor(
+  t(corTrimmed),
+  label_names = c("x", "y", "Correlation"),
+  Rowv = FALSE,
+  Colv = FALSE,
+  main = "Correlations of College & Dynasty Value",
+  xlab = "College"
+)
 
 ```
 

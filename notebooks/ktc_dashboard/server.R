@@ -1,7 +1,8 @@
 shinyServer(function(input, output) {
   
-  ### ATTRIBUTES TAB ###
+  # ATTRIBUTES TAB
   
+  ## Reactive Filters
   attrPlayer <- reactive({
     
     dynasty %>%
@@ -18,6 +19,7 @@ shinyServer(function(input, output) {
       
   })
   
+  ## Reactive Values
   v <- reactiveValues(xVar = "Age")
   
   observeEvent(input$xAge, {
@@ -44,7 +46,10 @@ shinyServer(function(input, output) {
     v$xVar <- "`Draft Overall Pick`"
   })
   
-  output$corrGraph <- renderPlot({
+  ## Plots
+  
+  ### attributes correlation matrix
+  output$corrGraph <- renderPlotly({
     
     dyCorr <- attrPos() %>%
       select(-name, -Drafted, -College, -date, -Born, -Position) %>%
@@ -54,38 +59,34 @@ shinyServer(function(input, output) {
       select(-name, -Drafted, -College, -date, -Born, -Position) %>%
       ggcorrplot::cor_pmat()
     
-    ggcorrplot(dyCorr,
-               #title = "Correlations of Attributes & Dynasty Values",
-               hc.order = TRUE,
-               type = "upper",
-               p.mat = p.mat,
-               colors = c("#E85262", "white", "#136C9D"),
-               ggtheme = theme_minimal,
-               legend.title = "Correlation")
-    
-    #ggplotly(p)
+    heatmaply::heatmaply_cor(
+      dyCorr,
+      colors = c(ktcPalette['ktcDarkRed'], "white", ktcPalette['ktcMenuBlue']),
+      label_names = c("x", "y", "Correlation"),
+      Rowv = FALSE,
+      Colv = FALSE,
+      main = "Correlations of Attributes & Dynasty Value"
+    )
     
   })
   
-  output$attrScatterTitle <- renderText({
-    
-    sprintf("Dynasty Value vs. %s by Position", v$xVar)
-    
-  })
-  
+
+  ### attributes & dynasty value scatterplot
   output$attrScatter <- renderPlotly({
     
     val_draft <- dynasty %>% 
       filter(date == max(date)) %>%
       drop_na(Position) %>%
       ggplot(aes(x = eval(parse(text = v$xVar)), 
-                 y = value, 
-                 color = Position
-      ), alpha = 0.5) +
-      geom_point(aes(text = sprintf("Name: %s<br>%s: %s<br>Value: %s<br>Position: %s",
+                 y = value), 
+             ) +
+      geom_point(color = ktcPalette['ktcDarkGrey'], 
+                 alpha = 0.3,
+                 aes(text = sprintf("Name: %s<br>%s: %s<br>Value: %s<br>Position: %s",
                                     name, v$xVar, eval(parse(text = v$xVar)), value, Position
-                                    
-      ))) +
+                                    )
+                     )
+                 ) +
       geom_point(data = attrPlayer(),
                  aes(x = eval(parse(text = v$xVar)),
                      y = value,
@@ -93,57 +94,57 @@ shinyServer(function(input, output) {
                                     name, v$xVar, eval(parse(text = v$xVar)), value, Position
                                     )
                      ),
-                 color = "orange",
+                 color = ktcPalette['ktcBlue'],
                  size = 2.5
                  )+
-      geom_smooth(se = FALSE) +
+      geom_smooth(se = FALSE, 
+                  color = ktcPalette['ktcLightRed'],
+                  alpha = 0.4) +
       facet_wrap(~Position) +
-      labs(x = v$xVar)
+      labs(x = v$xVar,
+           y = "Dynasty Value")
     
     ggplotly(val_draft, 
              tooltip = 'text'
-             )
+             ) %>%
+      layout(title = list(text = sprintf("Dynasty Value v %s by Position", v$xVar), font = list(size = 20)))
     
   })
   
-  output$collegeCorr <- renderPlot({
+  ### college & dynasty value correlation matrix
+  output$collegeCorr <- renderPlotly({
     
-    dynasty_college <- dynasty %>%
-      filter(date == max(date)) %>%
+    dynasty_college <- attrPos() %>%
       select(value, College) %>%
       drop_na(College) %>%
       group_by(College) %>%
       mutate(n = n()) %>%
-      filter(n >= 10) %>% 
+      filter(n >= 4) %>% 
       arrange(desc(n)) %>%
       select(-n)
     
-    dummy <- model.matrix(~0+., data=dynasty_college)
+    dummy <- model.matrix(~0+., data=dynasty_college) 
     colnames(dummy) <- sub("College", "", colnames(dummy))
     
     p.matTrimmed <- cor_pmat(dummy)[,1, drop = FALSE]
     
     corTrimmed <- cor(dummy, use="pairwise.complete.obs")[,1, drop = FALSE]
     
-    ggcorrplot(corTrimmed,
-               #
-               title = "Correlations between College and Dynasty Value",
-               colors = c("#E85262", "white", "#136C9D"),
-               show.diag = F,
-               type="lower",
-               p.mat = p.matTrimmed,
-               insig = "blank",
-               ggtheme = theme_minimal,
-               legend.title = "Correlation"
-    ) +
-      theme(axis.title = element_text(face = "bold", size = 14))
-    
-    #ggplotly(cp)
+    heatmaply::heatmaply_cor(
+      t(corTrimmed),
+      label_names = c("x", "y", "Correlation"),
+      colors = c(ktcPalette['ktcDarkRed'], "white", ktcPalette['ktcMenuBlue']),
+      Rowv = FALSE,
+      Colv = FALSE,
+      main = "Correlations of College & Dynasty Value",
+      xlab = "College"
+    )
     
   })
   
-  ### POSITIONS TAB ###
+  # POSITIONS TAB
   
+  ## Reactive Filters
   posPlayer <- reactive({
     
     dynasty %>%
@@ -163,23 +164,43 @@ shinyServer(function(input, output) {
     
     posPos() %>%
       group_by(Position, date) %>%
-      summarize(pos_mean = mean(value),
-             pos_max = max(value))
+      summarize(`Position Mean` = mean(value),
+             `Position Max` = max(value),
+             `Position Q3` = quantile(value, probs = 0.75),
+             `Position Median` = median(value),
+             `Position Q1` = quantile(value, probs = 0.25),
+             `Position Min` = min(value))
     
   })
   
+  ## Plots
+  
+  ### dynasty values by position boxplot
   output$posBox <- renderPlotly({
     
-    vals_by_position <- posPos() %>%
+    d <- posPos() %>%
       filter(date == max(date)) %>% 
-      ggplot(aes(x = Position, y = value, fill = Position)) +
-        geom_boxplot() +
-        labs(title = "Dynasty Values by Position")
+      mutate(Position = factor(Position, levels = c("QB", "RB", "WR", "TE")))
+    
+    vals_by_position <- ggplot() +
+        geom_boxplot(data = d, aes(x = Position, y = value, fill = Position)) +
+        geom_point(data = posPlayer()%>% filter(date == max(date)), aes(x = Position, y = value),
+                   color = ktcPalette['ktcBlue'],
+                   size = 2.5) +
+        scale_fill_manual(values = c("QB" = '#0B5680',
+                                     "RB" = '#136C9D',
+                                     "WR" = '#EE8590',
+                                     "TE" = '#E85262'
+                          )) +
+        labs(title = "Dynasty Values by Position",
+             y = "Dynasty Value")
+
     
     ggplotly(vals_by_position)
     
   })
   
+  ### dynasty value snapshot scatter
   output$posScatter <- renderPlotly({
     
 
@@ -189,11 +210,13 @@ shinyServer(function(input, output) {
                  size = 2.5) +
       geom_jitter(data = posPos() %>% filter(date == max(date)), aes(x = date, y = value),
                   alpha = 0.3) +
-      labs(title = "Player Value Compared to Selected Positions")
-
-
+      labs(title = "Player Value Compared to Selected Positions",
+           x = "Date",
+           y = "Dynasty Value")
+    
   })
 
+  ### dynasty value player vs position over time ("boxplot timeline")
   output$playerVposition <- renderPlotly({
 
     #transition_reveal(gameday)
@@ -208,17 +231,27 @@ shinyServer(function(input, output) {
     
     pp <- ggplot() +
       geom_line(data = posPlayer(), aes(x = date, y = value), color = ktcPalette['ktcBlue'])+
-      geom_line(data = posData, aes(x = date, y = pos_mean)) +
-      geom_line(data = posData, aes(x = date, y = pos_max)) +
-      labs(title = "Player Value Compared to Position Mean and Max over Time")
+      geom_line(data = posData, aes(x = date, y = `Position Median`)) +
+      geom_line(data = posData, aes(x = date, y = `Position Max`)) +
+      geom_line(data = posData, aes(x = date, y = `Position Q3`)) +
+      geom_line(data = posData, aes(x = date, y = `Position Q1`)) +
+      geom_line(data = posData, aes(x = date, y = `Position Min`)) +
+      geom_ribbon(data=posData, 
+                  aes(x = date, ymin=`Position Q1`,ymax=`Position Q3`), fill=ktcPalette['ktcLightGrey'], alpha=0.2) +
+      labs(title = "Player Value Compared to Position Boxplot over Time",
+           x = "Date",
+           y = "Dynasty Value") +
+      scale_y_continuous(limits = c(0, 10000))
     
     ggplotly(pp)
 
   })
   
-  ### PLAYERS TAB ###
+  # PLAYERS TAB
   
-  # reactive filter for player1 and player2 selections
+  ## Reactive Filters
+  
+  ### player1 and player2 dynasty
   player1_dynasty <- reactive({
     dynasty %>%
       filter(name == input$player1,
@@ -233,6 +266,7 @@ shinyServer(function(input, output) {
              )
   })
   
+  ### player1 and player2 fantasy
   player1_fantasy <- reactive({
     fantasy %>%
       filter(full_name == input$player1,
@@ -247,23 +281,42 @@ shinyServer(function(input, output) {
              )
   })
   
-  observeEvent(input$debug, {
-      browser()
+  date1 <- reactive({
+    input$playerDates[1]
   })
   
-  # render plotly dynasty comparison
+  date2 <- reactive({
+    input$playerDates[2]
+  })
+  
+  ## Plots
+  
+  ### player1 and player2 dynasty comparison
   output$dynasty_comparison <- renderPlotly({
     
     dc <- player1_dynasty() %>% 
       rbind(player2_dynasty()) %>%
-      ggplot(aes(x = date, y = value, color = name)) +
+      ggplot(aes(x = date, 
+                 y = value, 
+                 color = name,
+                 group = 1,   # for some reason this keeps the lines from disappearing when I use the text aesthetic
+                 text = sprintf("Player Name: %s<br>Date: %s<br>Dynasty Value: %s",
+                                name, date, value)
+                 )) +
       geom_line() +
-      labs(title = "Comparison of Dynasty Values over Time")
-    
-    ggplotly(dc)
+      scale_color_manual(values = c("#EE8590", "#4DB3E9")) +
+      labs(title = "Comparison of Dynasty Values over Time",
+           x = "Date",
+           y = "Dynasty Value",
+           color = "Player Name") +
+      xlim(date1(), date2()) +
+      ylim(0, 10000)
+
+    ggplotly(dc, tooltip = "text")
     
     })
   
+  ### player1 and player2 fantasy comparison
   output$fantasy_comparison <- renderPlotly({
     
     comp_2020 <- player1_fantasy() %>%
@@ -273,28 +326,32 @@ shinyServer(function(input, output) {
     comp_2021 <- player1_fantasy() %>%
       rbind(player2_fantasy()) %>%
       filter(season == 2021)
-    # 
-    # fc <- ggplot(data = fantasy, aes(x = gameday)) +
-    #   geom_line(data = comp_2020, aes(y = fantasy_points_halfppr, color = full_name)) +
-    #   geom_line(data = comp_2021, aes(y = fantasy_points_halfppr, color = full_name)) +
-    #   xlim(min(dynasty$date), max(dynasty$date)) +
-    #   labs(title = "Comparison of Fantasy Performance over Time")
-    # 
-    # ggplotly(fc)
-    
     
     p <- player1_fantasy() %>%
       rbind(player2_fantasy()) %>%
-      ggplot(aes(x = gameday, fantasy_points_halfppr, color = full_name, label = paste0(round(fantasy_points_halfppr, 0)))) +
+      ggplot(aes(x = gameday, y = fantasy_points_halfppr, 
+                 color = full_name, 
+                 label = paste0(round(fantasy_points_halfppr, 0)),
+                 text = sprintf("Player Name: %s<br>Game Date: %s<br>Fantasy Points Half PPR: %s",
+                                full_name, gameday, paste0(round(fantasy_points_halfppr, 0))))) +
         geom_segment(aes(x = gameday, y = 0, yend = fantasy_points_halfppr, xend = gameday), color = "grey50") +
         geom_point(size = 7) +
         geom_text(color = "white", size = 2) +
-        labs(title = "Comparison of Fantasy Performance over Time")
+        scale_color_manual(values = c("#EE8590", "#4DB3E9")) +
+        labs(title = "Comparison of Fantasy Performance over Time",
+             x = "Game Date",
+             y = "Fantasy Points Scored (Half PPR)",
+             color = "Player Name") +
+        xlim(date1(), date2())
+
     
-    ggplotly(p)
+    ggplotly(p, tooltip = 'text')
     
   })
   
+  ## Player Cards
+  
+  ### player1 card image
   output$card1_img <- renderUI({
     
     src <- player1_fantasy() %>%
@@ -306,6 +363,7 @@ shinyServer(function(input, output) {
     
   })
   
+  ### player1 card text
   output$card1_text <- renderText({
     
     fcontent <- player1_fantasy() %>% 
@@ -320,10 +378,12 @@ shinyServer(function(input, output) {
            "<br>Age: ", dcontent %>% select(Age) %>% unique(),
            "<br>Experience: ", dcontent %>% select(Experience) %>% unique(),
            "<br>Height: ", dcontent %>% select(Height) %>% unique(),
-           "<br>Weight: ", dcontent %>% select(Weight) %>% unique())
+           "<br>Weight: ", dcontent %>% select(Weight) %>% unique(),
+           "<br><br><br><br><br><br>")
     
   })
   
+  ### player2 card image
   output$card2_img <- renderUI({
     
     src <- player2_fantasy() %>%
@@ -335,6 +395,7 @@ shinyServer(function(input, output) {
     
   })
   
+  ### player2 card text
   output$card2_text <- renderText({
     
     fcontent <- player2_fantasy() %>% 
@@ -349,7 +410,8 @@ shinyServer(function(input, output) {
            "<br>Age: ", dcontent %>% select(Age) %>% unique(),
            "<br>Experience: ", dcontent %>% select(Experience) %>% unique(),
            "<br>Height: ", dcontent %>% select(Height) %>% unique(),
-           "<br>Weight: ", dcontent %>% select(Weight) %>% unique())
+           "<br>Weight: ", dcontent %>% select(Weight) %>% unique(),
+           "<br><br><br><br><br><br>")
     
   })
   
