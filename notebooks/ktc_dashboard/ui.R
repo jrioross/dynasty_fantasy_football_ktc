@@ -175,7 +175,7 @@ shinyUI(
                    ),
                    fluidRow(
                      column(
-                       style = paste0("border: 2px solid", ktcPalette['ktcLightRed']),
+                       style = paste0("border: 2px solid", ktcPalette['ktcDarkRed']),
                        htmlOutput("card2_img"),
                        htmlOutput("card2_text"),
                        width = 3

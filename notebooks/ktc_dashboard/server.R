@@ -20,7 +20,7 @@ shinyServer(function(input, output) {
   })
   
   ## Reactive Values
-  v <- reactiveValues(xVar = "Age")
+  v <- reactiveValues(xVar = "`Draft Overall Pick`")
   
   observeEvent(input$xAge, {
     v$xVar <- "Age"
@@ -119,7 +119,7 @@ shinyServer(function(input, output) {
       drop_na(College) %>%
       group_by(College) %>%
       mutate(n = n()) %>%
-      filter(n >= 4) %>% 
+      filter(n >= 2) %>% 
       arrange(desc(n)) %>%
       select(-n)
     
@@ -178,13 +178,18 @@ shinyServer(function(input, output) {
   ### dynasty values by position boxplot
   output$posBox <- renderPlotly({
     
-    d <- posPos() %>%
+    d <- dynasty %>%
+      drop_na(Position) %>%
       filter(date == max(date)) %>% 
       mutate(Position = factor(Position, levels = c("QB", "RB", "WR", "TE")))
     
     vals_by_position <- ggplot() +
         geom_boxplot(data = d, aes(x = Position, y = value, fill = Position)) +
-        geom_point(data = posPlayer()%>% filter(date == max(date)), aes(x = Position, y = value),
+        geom_point(data = posPlayer()%>% filter(date == max(date)), 
+                   aes(x = Position, 
+                       y = value,
+                       text = sprintf("Player Name: %s<br>Position: %s<br>Dynasty Value: %s",
+                                      name, Position, value)),
                    color = ktcPalette['ktcBlue'],
                    size = 2.5) +
         scale_fill_manual(values = c("QB" = '#0B5680',
@@ -196,7 +201,7 @@ shinyServer(function(input, output) {
              y = "Dynasty Value")
 
     
-    ggplotly(vals_by_position)
+    ggplotly(vals_by_position, tooltip = "text")
     
   })
   
@@ -204,17 +209,29 @@ shinyServer(function(input, output) {
   output$posScatter <- renderPlotly({
     
 
-    ggplot() +
-      geom_point(data = posPlayer()%>% filter(date == max(date)), aes(x = date, y = value),
+    p <- ggplot() +
+      geom_point(data = posPlayer()%>% filter(date == max(date)), 
+                 aes(x = date, 
+                     y = value,
+                     text = sprintf("Player Name: %s<br>Date: %s<br>Dynasty Value: %s",
+                                    name, date, value)),
                  color = ktcPalette['ktcBlue'],
                  size = 2.5) +
-      geom_jitter(data = posPos() %>% filter(date == max(date)), aes(x = date, y = value),
+      geom_jitter(data = posPos() %>% filter(date == max(date)), 
+                  aes(x = date, 
+                      y = value,
+                      text = sprintf("Player Name: %s<br>Date: %s<br>Dynasty Value: %s",
+                                     name, date, value)),
                   alpha = 0.3) +
-      labs(title = "Player Value Compared to Selected Positions",
+      labs(title = sprintf("%s Compared to Selected Positions Scatter",
+                           posPlayer() %>% select(name) %>% unique()),
            x = "Date",
            y = "Dynasty Value")
     
+    ggplotly(p, tooltip = "text")
+    
   })
+  
 
   ### dynasty value player vs position over time ("boxplot timeline")
   output$playerVposition <- renderPlotly({
@@ -238,10 +255,17 @@ shinyServer(function(input, output) {
       geom_line(data = posData, aes(x = date, y = `Position Min`)) +
       geom_ribbon(data=posData, 
                   aes(x = date, ymin=`Position Q1`,ymax=`Position Q3`), fill=ktcPalette['ktcLightGrey'], alpha=0.2) +
-      labs(title = "Player Value Compared to Position Boxplot over Time",
+      labs(title = sprintf("%s Compared to %s Boxplot over Time", 
+                           posPlayer() %>% select(name) %>% unique(),
+                           playerPos),
            x = "Date",
            y = "Dynasty Value") +
-      scale_y_continuous(limits = c(0, 10000))
+      scale_y_continuous(limits = c(0, 10000)) +
+      annotate("text", 
+               x = min(posPlayer()$date)+35, 
+               y = 9000, 
+               label = sprintf("%s", posPlayer() %>% select(name) %>% unique()), 
+               color = ktcPalette['ktcBlue'])
     
     ggplotly(pp)
 
@@ -304,7 +328,7 @@ shinyServer(function(input, output) {
                                 name, date, value)
                  )) +
       geom_line() +
-      scale_color_manual(values = c("#EE8590", "#4DB3E9")) +
+      scale_color_manual(values = c("#E85262", "#4DB3E9")) +
       labs(title = "Comparison of Dynasty Values over Time",
            x = "Date",
            y = "Dynasty Value",
@@ -337,7 +361,7 @@ shinyServer(function(input, output) {
         geom_segment(aes(x = gameday, y = 0, yend = fantasy_points_halfppr, xend = gameday), color = "grey50") +
         geom_point(size = 7) +
         geom_text(color = "white", size = 2) +
-        scale_color_manual(values = c("#EE8590", "#4DB3E9")) +
+        scale_color_manual(values = c("#E85262", "#4DB3E9")) +
         labs(title = "Comparison of Fantasy Performance over Time",
              x = "Game Date",
              y = "Fantasy Points Scored (Half PPR)",
