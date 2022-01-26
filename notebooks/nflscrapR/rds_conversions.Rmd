@@ -137,28 +137,28 @@ dynasty_attributes %>%
   write_csv('../../data/dynasty_attributes.csv')
 
 dynasty_attributes %>% 
-  write_rds('../../data/dynasty_attributes.RDS')
+  write_rds('../ktc_dashboard/data/dynasty_attributes.RDS')
 
 # dynasty values
 dynasty_values %>% 
   write_csv('../../data/ktc_historical_dynasty_values.csv')
 
 dynasty_values %>% 
-  write_rds('../../data/ktc_historical_dynasty_values.RDS')
+  write_rds('../ktc_dashboard/data/ktc_historical_dynasty_values.RDS')
 
 # devy values
 devy_values %>% 
   write_csv('../../data/ktc_historical_devy_values.csv')
 
 devy_values %>% 
-  write_rds('../../data/ktc_historical_devy_values.RDS')
+  write_rds('../ktc_dashboard/data/ktc_historical_devy_values.RDS')
 
 # dynasty values with attributes (aka dynasty_full)
 dynasty_full %>%
   write_csv('../../data/dynasty_full.csv')
 
 dynasty_full %>%
-  write_rds('../../data/dynasty_full.RDS')
+  write_rds('../ktc_dashboard/data/dynasty_full.RDS')
 
 ```
 

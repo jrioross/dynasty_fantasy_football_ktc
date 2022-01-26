@@ -151,4 +151,4 @@ The current version of the Armchair Scouting App for KeepTradeCut has three tabs
 
 
 ## Link to the App
-Put [the app](www.example.com) to work.
+Put [the Armchair Scouting app](https://jrioross.shinyapps.io/ktc_dashboard/) to work.

@@ -25,8 +25,8 @@ ktcPalette <- c("ktcBlue" = "#4DB3E9",
                 "ktcLightRed" = "#EE8590",
                 "ktcDarkRed" = "#E85262")
 
-dynasty <- readRDS('../../data/dynasty_full.RDS')
-fantasy <- readRDS('../../data/weekly_fantasy.RDS')
+dynasty <- readRDS('data/dynasty_full.RDS')
+fantasy <- readRDS('data/weekly_fantasy.RDS')
 
 playerList <- dynasty %>% 
   arrange(desc(date)) %>% 

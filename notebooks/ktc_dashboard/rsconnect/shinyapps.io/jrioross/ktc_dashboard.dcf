@@ -1,0 +1,11 @@
+name: ktc_dashboard
+title:
+username:
+account: jrioross
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5499188
+bundleId: 5502794
+url: https://jrioross.shinyapps.io/ktc_dashboard/
+when: 1643045476.16996
+lastSyncTime: 1643045476.16996

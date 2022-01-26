@@ -74,7 +74,7 @@ weekly %>%
   write_csv('../../data/weekly_fantasy.csv')
 
 weekly %>% 
-  write_rds('../../data/weekly_fantasy.RDS')
+  write_rds('../ktc_dashboard/data/weekly_fantasy.RDS')
 ```
 
 
